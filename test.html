@@ -1,0 +1,162 @@
+<!DOCTYPE html> 
+<html lang="en">
+
+<style>
+@import "./test/stylesheets/search.css";
+@import "https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css";
+</style>
+
+<app @keyup.esc="closeForm()">
+  <div class="container">
+    <div class="search-bar" :class="{ 'open': test1 }">
+
+      <div class="search-bar-form">
+        <input type="search" class="search-bar-input" @click="getOpen()" placeholder="Search requirements..." @keyup.esc="closeForm()" @keyup.enter="getAsk()" v-model="newAsk">
+        <button class="search-bar-submit" type="submit" @click="getAsk()">Search</button>
+      </div>
+
+      <div class="result-wrap" v-show="askChecked">
+        <div class="result" v-for="elem in askRes" transition="expand">
+           <h2><a href="http://en.wikipedia.org/?curid={{elem.pageid}}" target="_blank">{{ elem.title }}</a></h2>
+           <p>{{ elem.extract }}</p>
+           <button type="submit" @click="select(elem.extract)">Apply</button>
+        </div>
+      </div>
+
+      <span class="search-bar-close" v-on:click="closeForm()"></span>
+
+    </div>
+
+    <div class="search-bar2" :class="{ 'open': test2 }">
+
+      <div class="search-bar-form2">
+        <input type="search" class="search-bar-input2" @click="getOpen2()" placeholder="Search specifications..." @keyup.esc="closeForm2()" @keyup.enter="getAsk2()" v-model="newAsk2">
+        <button class="search-bar-submit2" type="submit" @click="getAsk2()">Search</button>
+      </div>
+
+      <div class="result-wrap" v-show="askChecked2">
+        <div class="result" v-for="elem in askRes2" transition="expand">
+           <h2><a href="http://en.wikipedia.org/?curid={{elem.pageid}}" target="_blank">{{ elem.title }}</a></h2>
+           <p>{{ elem.extract }}</p>
+           <button type="submit" @click="select2(elem.extract)">Apply</button>
+        </div>
+      </div>
+
+      <span class="search-bar-close" v-on:click="closeForm2()"></span>
+
+    </div>
+
+    <div class="h-request" v-show="askChecked && forcused"> requirement </div>
+    <textarea class="requirement-text" v-model="lines" v-show="askChecked && forcused"> {{ this.takeit }} </textarea>
+
+    <div class="h-spec" v-show="askChecked2 && forcused"> specification </div>
+    <textarea class="specification-text" v-model="lines2" v-show="askChecked2 && forcused"> {{ this.takeit2 }} </textarea>
+
+    <div class="overlay"></div>
+       <!-- <search-bar></search-bar> -->
+  </div>
+</app>
+
+<script src='https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.26/vue.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/vue-resource/0.9.3/vue-resource.min.js'></script>
+
+<script>
+const vm = new Vue({
+      el: 'app',
+      data: {
+        test1: '',
+        askRes: null,
+        newAsk: '',
+        newUrl: '',
+        ask: null,
+        askChecked: false,
+        takeit: '',
+
+        test2: '',
+        askRes2: null,
+        newAsk2: '',
+        newUrl2: '',
+        askChecked2: false,
+        takeit2: '',
+        forcused: false
+      },
+      ready: function () {
+          // this.getLink()
+      },
+      methods: {
+        getOpen: function () {
+          this.test1 = 'open';
+          this.forcused = false;
+        },
+        getOpen2: function () {
+          this.test2 = 'open';
+          this.forcused = false;
+        },
+        closeForm: function () {
+          this.test1 = ''
+          this.newAsk = ''
+          this.askRes = ''
+          this.askChecked = false
+        },
+        closeForm2: function () {
+          this.test2 = ''
+          this.newAsk2 = ''
+          this.askRes2 = ''
+          this.askChecked2 = false
+        },
+        closeResult: function () {
+          this.test1 = ''
+          //this.newAsk = ''
+          this.askChecked = true
+        },
+        closeResult2: function () {
+          this.test2 = ''
+          //this.newAsk2 = ''
+          this.askChecked2 = true
+        },
+        getUrl: function () {
+          var apiUrl = "https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrnamespace=0&exsentences=1&exintro&explaintext&exlimit=max&prop=extracts&gsrlimit=10&gsrsearch="+this.newAsk+"&format=json"
+          this.$set('newUrl', apiUrl)
+        },
+        getUrl2: function () {
+          var apiUrl = "https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrnamespace=0&exsentences=1&exintro&explaintext&exlimit=max&prop=extracts&gsrlimit=10&gsrsearch="+this.newAsk2+"&format=json"
+          this.$set('newUrl2', apiUrl)
+        },
+        getAsk: function () {
+          this.getUrl()
+          console.log(this.newUrl);
+          this.$http.jsonp(this.newUrl).then((response) => {
+            this.askRes = response.data.query.pages;
+            this.askChecked = true;
+          }, (response) => {
+            // if api not working
+            console.log(response.data)
+          })
+        },
+        getAsk2: function () {
+          this.getUrl2()
+          console.log(this.newUrl2);
+          this.$http.jsonp(this.newUrl2).then((response2) => {
+            this.askRes2 = response2.data.query.pages
+            this.askChecked2 = true
+          }, (response2) => {
+            // if api not working
+            console.log(response2.data)
+          })
+        },
+        select:function(itemname){
+          this.takeit = itemname;
+          alert(this.takeit)
+          this.closeResult();
+          this.forcused = true;
+        },
+        select2:function(itemname){
+          this.takeit2 = itemname;
+          alert(this.takeit2)
+          this.closeResult2();
+          this.forcused = true;
+        },
+     }
+    })
+</script>
+</html>
